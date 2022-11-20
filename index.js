@@ -22,7 +22,7 @@ const bot = new TelegramApi(token, { polling: true });
 const checkInstance = async (chatId) => {
   const user = await UserModel.findOne({
     where: {
-      chatId: chatId,
+      chatId: chatId.toString(),
     },
   });
   if (user === null) {
@@ -85,7 +85,7 @@ const start = async () => {
       if (text === "/info") {
         const user = await UserModel.findOne({
           where: {
-            chatId: chatId,
+            chatId: chatId.toString(),
           },
         });
         return bot.sendMessage(
