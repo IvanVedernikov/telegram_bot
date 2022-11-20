@@ -19,7 +19,15 @@ const chats = {};
 
 const bot = new TelegramApi(token, { polling: true });
 
+const checkInstance = async (chatId) => {
+  const user = await UserModel.findOne({ chatId });
+  if (user === null) {
+    await UserModel.create({ chatId });
+  }
+};
+
 const startGame = async (chatId) => {
+  checkInstance(chatId);
   await bot.sendMessage(
     chatId,
     `Сейчас я загадаю цифру от 0 до 9, а ты должен ее угадать`
@@ -62,12 +70,7 @@ const start = async () => {
 
     try {
       if (text === "/start") {
-        const user = await UserModel.findOne({ chatId });
-        console.log(user);
-        if (!user) {
-          await UserModel.create({ chatId });
-        }
-
+        checkInstance(chatId);
         await bot.sendSticker(chatId, runStikerUrl);
         return bot.sendMessage(
           chatId,
