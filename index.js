@@ -20,7 +20,11 @@ const chats = {};
 const bot = new TelegramApi(token, { polling: true });
 
 const checkInstance = async (chatId) => {
-  const user = await UserModel.findOne({ chatId });
+  const user = await UserModel.findOne({
+    where: {
+      chatId: chatId,
+    },
+  });
   if (user === null) {
     await UserModel.create({ chatId });
   }
@@ -79,7 +83,11 @@ const start = async () => {
       }
 
       if (text === "/info") {
-        const user = await UserModel.findOne({ chatId });
+        const user = await UserModel.findOne({
+          where: {
+            chatId: chatId,
+          },
+        });
         return bot.sendMessage(
           chatId,
           `Тебя зовут ${msg.from.first_name} ${msg.from.last_name} (${chatId}), в игре у тебя правильных ответов ${user.right}, неправильных ${user.wrong}`
@@ -99,7 +107,11 @@ const start = async () => {
   bot.on("callback_query", async (msg) => {
     const data = msg.data;
     const chatId = msg.message.chat.id;
-    const user = await UserModel.findOne({ chatId });
+    const user = await UserModel.findOne({
+      where: {
+        chatId: chatId,
+      },
+    });
     if (data === "/again") {
       return startGame(chatId);
     }
