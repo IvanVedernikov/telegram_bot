@@ -36,7 +36,7 @@ const start = async () => {
   //   host: "raspberrypi.local",
   //   port: 22,
   //   dstPort: 5432, // порт postgres на удалённом сервере
-  //   localPort: 5433, // порт postgres на локальной машине
+  //   localPort: 5432, // порт postgres на локальной машине
   //   keepAlive: true,
   //   readyTimeout: 10000,
   // };
@@ -63,6 +63,7 @@ const start = async () => {
     try {
       if (text === "/start") {
         const user = await UserModel.findOne({ chatId });
+        console.log(user);
         if (!user) {
           await UserModel.create({ chatId });
         }
