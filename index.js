@@ -2,6 +2,7 @@ const TelegramApi = require("node-telegram-bot-api");
 const { gameOptions, againOptions } = require("./options");
 
 const sequelize = require("./db");
+const UserModel = require("./models");
 
 const token = "5609601223:AAERXTBIsBN8FMvJTAXcZDz3FcZSDlO81Mg";
 const runStikerUrl =
@@ -45,23 +46,29 @@ const start = async () => {
     const text = msg.text;
     const chatId = msg.chat.id;
 
-    if (text === "/start") {
-      await bot.sendSticker(chatId, runStikerUrl);
-      return bot.sendMessage(
-        chatId,
-        `Добро пожаловать в телеграмм бот Ивана Ведерникова`
-      );
-    }
+    try {
+      if (text === "/start") {
+        await UserModel.create({ chatId });
+        await bot.sendSticker(chatId, runStikerUrl);
+        return bot.sendMessage(
+          chatId,
+          `Добро пожаловать в телеграмм бот Ивана Ведерникова`
+        );
+      }
 
-    if (text === "/info") {
-      return bot.sendMessage(
-        chatId,
-        `Тебя зовут ${msg.from.first_name} ${msg.from.last_name}`
-      );
-    }
+      if (text === "/info") {
+        const user = await UserModel.findOne({ chatId });
+        return bot.sendMessage(
+          chatId,
+          `Тебя зовут ${msg.from.first_name} ${msg.from.last_name}, в игре у тебя правильных ответов ${user.right}, неправильных ${user.wrong}`
+        );
+      }
 
-    if (text === "/game") {
-      return startGame(chatId);
+      if (text === "/game") {
+        return startGame(chatId);
+      }
+    } catch (e) {
+      return bot.sendMessage(chatId, `Произошла ошибка: ${e}`);
     }
 
     return bot.sendMessage(chatId, `Я тебя не понимаю, попробуй еще раз`);
@@ -74,20 +81,23 @@ const start = async () => {
       return startGame(chatId);
     }
     if (data == chats[chatId]) {
+      user.right += 1;
       await bot.sendSticker(chatId, succesStikerUrl);
-      return bot.sendMessage(
+      await bot.sendMessage(
         chatId,
         `Поздравляю, ты угадал цифру ${chats[chatId]}`,
         againOptions
       );
     } else {
+      user.wrong += 1;
       await bot.sendSticker(chatId, failStikerUrl);
-      return bot.sendMessage(
+      await bot.sendMessage(
         chatId,
         `К сожалению, ты не угадал, я загадал цифру  ${chats[chatId]}`,
         againOptions
       );
     }
+    await user.save();
   });
 };
 
