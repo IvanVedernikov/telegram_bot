@@ -1,5 +1,8 @@
 const TelegramApi = require("node-telegram-bot-api");
 const { gameOptions, againOptions } = require("./options");
+
+const sequelize = require("./db");
+
 const token = "5609601223:AAERXTBIsBN8FMvJTAXcZDz3FcZSDlO81Mg";
 const runStikerUrl =
   "https://tlgrm.eu/_/stickers/ea5/382/ea53826d-c192-376a-b766-e5abc535f1c9/11.webp";
@@ -24,7 +27,14 @@ const startGame = async (chatId) => {
   await bot.sendMessage(chatId, `Отгадывай`, gameOptions);
 };
 
-const start = () => {
+const start = async () => {
+  try {
+    await sequelize.authenticate();
+    await sequelize.sync();
+  } catch (e) {
+    console.log("Подключение к БД сломалось", e);
+  }
+
   bot.setMyCommands([
     { command: "/start", description: "Начальное приветствие" },
     { command: "/info", description: "Получить информацию о пользователе" },
