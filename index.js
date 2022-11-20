@@ -109,7 +109,7 @@ const start = async () => {
     const chatId = msg.message.chat.id;
     const user = await UserModel.findOne({
       where: {
-        chatId: chatId,
+        chatId: chatId.toString(),
       },
     });
     if (data === "/again") {
