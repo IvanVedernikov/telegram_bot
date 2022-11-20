@@ -1,5 +1,6 @@
 const TelegramApi = require("node-telegram-bot-api");
 const { gameOptions, againOptions } = require("./options");
+const tunnel = require("tunnel-ssh");
 
 const sequelize = require("./db");
 const UserModel = require("./models");
@@ -29,12 +30,25 @@ const startGame = async (chatId) => {
 };
 
 const start = async () => {
+  // const config = {
+  //   username: "pi",
+  //   password: "@WSX2wsx",
+  //   host: "raspberrypi.local",
+  //   port: 22,
+  //   dstPort: 5432, // порт postgres на удалённом сервере
+  //   localPort: 5433, // порт postgres на локальной машине
+  //   keepAlive: true,
+  //   readyTimeout: 10000,
+  // };
+
+  // tunnel(config, async function (error, server) {
   try {
     await sequelize.authenticate();
     await sequelize.sync();
   } catch (e) {
     console.log("Подключение к БД сломалось", e);
   }
+  // });
 
   bot.setMyCommands([
     { command: "/start", description: "Начальное приветствие" },
@@ -48,7 +62,11 @@ const start = async () => {
 
     try {
       if (text === "/start") {
-        await UserModel.create({ chatId });
+        const user = await UserModel.findOne({ chatId });
+        if (!user) {
+          await UserModel.create({ chatId });
+        }
+
         await bot.sendSticker(chatId, runStikerUrl);
         return bot.sendMessage(
           chatId,
